@@ -180,4 +180,15 @@ Private Function lcValueQtyAsDicFromErpReport(piReportFilePath As String) As Obj
 
 End Function
 
+Private Function isCompareValuesLessThanProvidedValue(num1 As Variant, num2 As Variant, differenceCompare As Variant) As Boolean
+'    "num1", "num2" are the compare value and "differenceCompare" is the value what we want to know "is less than this value"
+    Dim difference As Variant
+    difference = Abs(num1 - num2)
+    
+    If difference < differenceCompare Then
+        isCompareValuesLessThanProvidedValue = True
+    Else
+        isCompareValuesLessThanProvidedValue = False
+    End If
+End Function
 
