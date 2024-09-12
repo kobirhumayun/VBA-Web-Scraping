@@ -17,6 +17,9 @@ Sub lcDashboard()
     
     Dim upIssuingStatus As Variant
     upIssuingStatus = allLcWorkingRange.Value
+
+    Dim lcValueQtyAsDicFromErp As Object
+    Set lcValueQtyAsDicFromErp = Application.Run("utility_function.lcValueQtyAsDicFromErpReport", "D:\Temp\UP Draft\Draft 2024\PIReport.xlsx")
     
     Dim lcCount As Integer
     lcCount = UBound(allLcInfo) - 2
@@ -235,11 +238,11 @@ Sub lcDashboard()
     
     If IsNumeric(chromeBrowser.FindElementById("P75_LC_VALUE").Value) Then
     
-        If CDbl(chromeBrowser.FindElementById("P75_LC_VALUE").Value) = CDbl(currentLcProperties("value")) Then
+        If CDbl(chromeBrowser.FindElementById("P75_LC_VALUE").Value) = lcValueQtyAsDicFromErp(allLcInfo(i + 2, 4))("PIAmount") Then
     
             currentLcResultProperties("value") = "OK"
     
-        ElseIf CDbl(chromeBrowser.FindElementById("P75_LC_VALUE").Value) > CDbl(currentLcProperties("value")) Then
+        ElseIf CDbl(chromeBrowser.FindElementById("P75_LC_VALUE").Value) > lcValueQtyAsDicFromErp(allLcInfo(i + 2, 4))("PIAmount") Then
     
             currentLcResultProperties("is_all_properties_ok") = False
             currentLcResultProperties("value") = "Value greater in dashboard may be have more LC amnd"
@@ -247,7 +250,7 @@ Sub lcDashboard()
         Else
     
             currentLcResultProperties("is_all_properties_ok") = False
-            currentLcResultProperties("value") = "Value mismatch = " & Round(CDbl(chromeBrowser.FindElementById("P75_LC_VALUE").Value) - CDbl(currentLcProperties("value")), 2)
+            currentLcResultProperties("value") = "Value mismatch = " & Round(CDbl(chromeBrowser.FindElementById("P75_LC_VALUE").Value) - lcValueQtyAsDicFromErp(allLcInfo(i + 2, 4))("PIAmount"), 2)
     
         End If
     
@@ -269,11 +272,15 @@ Sub lcDashboard()
     
     If IsNumeric(qtyFromDashboard) Then
     
-        If CDbl(qtyFromDashboard) = CDbl(currentLcProperties("qty")) Then
+        If CDbl(qtyFromDashboard) = lcValueQtyAsDicFromErp(allLcInfo(i + 2, 4))("PIQty") Then
     
             currentLcResultProperties("qty") = "OK"
     
-        ElseIf CDbl(qtyFromDashboard) > CDbl(currentLcProperties("qty")) Then
+        ElseIf Application.Run("utility_function.isCompareValuesLessThanProvidedValue", CDbl(qtyFromDashboard), lcValueQtyAsDicFromErp(allLcInfo(i + 2, 4))("NetWeight"), 0.8) Then
+
+            currentLcResultProperties("qty") = "Qty. OK(KGS)"
+
+        ElseIf CDbl(qtyFromDashboard) > lcValueQtyAsDicFromErp(allLcInfo(i + 2, 4))("PIQty") Then
     
             currentLcResultProperties("is_all_properties_ok") = False
             currentLcResultProperties("qty") = "Qty. greater in dashboard may be have more LC amnd"
@@ -281,7 +288,7 @@ Sub lcDashboard()
         Else
     
             currentLcResultProperties("is_all_properties_ok") = False
-            currentLcResultProperties("qty") = "Qty. mismatch = " & Round(CDbl(qtyFromDashboard) - CDbl(currentLcProperties("qty")), 2)
+            currentLcResultProperties("qty") = "Qty. mismatch = " & Round(CDbl(qtyFromDashboard) - lcValueQtyAsDicFromErp(allLcInfo(i + 2, 4))("PIQty"), 2)
     
         End If
     
@@ -308,7 +315,17 @@ Sub lcDashboard()
     resultStr = ""
     
     If currentLcResultProperties("is_all_properties_ok") Then
-        resultStr = "All Field is OK"
+
+        If currentLcResultProperties("qty") = "Qty. OK(KGS)" Then
+
+            resultStr = "All Field is OK Qty.(KGS)"
+
+        Else
+
+            resultStr = "All Field is OK"
+
+        End If
+
     Else
     
         Dim key As Variant
