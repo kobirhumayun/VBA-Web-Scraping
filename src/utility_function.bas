@@ -124,3 +124,60 @@ ErrorHandler:
 
 End Function
 
+Private Function lcValueQtyAsDicFromErpReport(piReportFilePath As String) As Object
+
+    Application.ScreenUpdating = False
+        
+    Dim piReportWb As Workbook
+    Dim piReportWs As Worksheet
+    Set piReportWb = Workbooks.Open(piReportFilePath)
+    Set piReportWs = piReportWb.Worksheets(1)
+
+    piReportWs.AutoFilterMode = False
+        
+    Dim temp As Variant
+    temp = piReportWs.Range("A4").CurrentRegion.value
+
+    piReportWb.Close SaveChanges:=False
+        
+    Dim i As Long
+
+    Dim lcValueQtyAsDic As Object
+    Set lcValueQtyAsDic = CreateObject("Scripting.Dictionary")
+
+    For i = 2 To UBound(temp)
+
+        If Not lcValueQtyAsDic.Exists(temp(i, 4)) Then
+
+                'take unique LC as dictionary
+            lcValueQtyAsDic.Add temp(i, 4), CreateObject("Scripting.Dictionary")
+
+            lcValueQtyAsDic(temp(i, 4)).Add "piList", CreateObject("Scripting.Dictionary")
+
+        End If
+
+        If Not lcValueQtyAsDic(temp(i, 4))("piList").Exists(temp(i, 6)) Then
+
+                'take unique PI
+            lcValueQtyAsDic(temp(i, 4))("piList").Add temp(i, 6), temp(i, 6)
+
+                'take only one time, cause total Qty duplicate
+            lcValueQtyAsDic(temp(i, 4))("NetWeight") = lcValueQtyAsDic(temp(i, 4))("NetWeight") + CDec(temp(i, 23))
+            lcValueQtyAsDic(temp(i, 4))("GrossWeight") = lcValueQtyAsDic(temp(i, 4))("GrossWeight") + CDec(temp(i, 25))
+
+        End If
+
+        lcValueQtyAsDic(temp(i, 4))("PIQty") = lcValueQtyAsDic(temp(i, 4))("PIQty") + CDec(temp(i, 18))
+        lcValueQtyAsDic(temp(i, 4))("Unit") = temp(i, 19)
+        lcValueQtyAsDic(temp(i, 4))("PIAmount") = lcValueQtyAsDic(temp(i, 4))("PIAmount") + CDec(temp(i, 20))
+        lcValueQtyAsDic(temp(i, 4))("Currency") = temp(i, 21)
+        lcValueQtyAsDic(temp(i, 4))("Buyer") = temp(i, 26)
+        lcValueQtyAsDic(temp(i, 4))("BuyerAddress") = temp(i, 27)
+
+    Next i
+
+    Set lcValueQtyAsDicFromErpReport = lcValueQtyAsDic
+
+End Function
+
+
